@@ -1,32 +1,41 @@
 import { Request, Response } from "express";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, getAuth, UserCredential } from "firebase/auth"
-
-export const signUp = async (req: Request, res: Response) => {
-    let email: string = req.body.email.toLowerCase();
-    let { password } = req.body;
-
-    let userCredentials: UserCredential | null = null
-    try {
-        userCredentials = await createUserWithEmailAndPassword(getAuth(),email,password);
-    } catch (error) {
-        console.log(error)
-        res.send("Unable to create user")
-    }
-    res.send(userCredentials)
+import * as UserRepostory from "../repository/user";
+import mongoose from "mongoose";
+import { User } from "../model/user";
+interface UserDetails {
+    name: string,
+    email: string,
+    dob: string,
+    userName: string
 }
 
-
-export const signIn = async (req: Request, res: Response) => {
-    const email: string = req.body.email.toLowerCase();
-    const { password } = req.body;
-    let userCredentials:  UserCredential | null = null
+export const signUp = async (req: Request, res: Response) => {
+    const userDetails: UserDetails = req.body;
     try {
-        userCredentials = await signInWithEmailAndPassword(getAuth(), email, password);
-        
-    } catch (error) {
-        console.log(error)
+        const user = await UserRepostory.default.createUser({ name: userDetails.name, email: userDetails.email, date_of_birth: userDetails.dob, user_name: userDetails.userName.toLowerCase() });
+        res.send(user)
+    } catch (err) {
+        res.send(err)
     }
+}
 
-    res.json(userCredentials)
+export const checkEmail = async (req: Request, res: Response) => {
+    const userDetails: UserDetails = req.body;
+    try {
+        const count = await UserRepostory.default.getEmailCount(userDetails.email);
+        res.send(count.toString())
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export const checkUserName = async (req: Request, res: Response) => {
+    const userDetails: UserDetails = req.body;
+    try {
+        const count = await UserRepostory.default.getUserNameCount(userDetails.userName);
+        res.send(count.toString())
+    } catch (err) {
+        console.log(err)
+    }
 }
 

@@ -1,20 +1,30 @@
 import express, { Express, Request, Response } from "express";
-import { initializeFirebase } from "./firebase/firebase";
 import dotenv from "dotenv";
-import userRoutes from "./routes/user";
-
+import mongoose from "mongoose";
+import router from "./router/index";
 dotenv.config();
-initializeFirebase();
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+const MONGODB_URL: string = process.env.MONGODB_URL!
+
 
 app.use(express.json());
-app.use('/user', userRoutes)
+app.use('/', router());
+
+mongoose.connect(MONGODB_URL).then(() => {
+    console.log("Successfully Connected to Database");
+    app.listen(port, () => {
+        console.log(`[server]: Server is running at http://localhost:${port}`);
+    });
+
+}).catch((err) => {
+    console.log("Error");
+})
+
+
+
 app.get('/', (req: Request, res: Response) => {
-    res.send("<h1>Api fror dot</h1>");
+    res.send("<h1>Api for dot</h1>");
 });
 
-app.listen(port, () => {
-    console.log(`[server]: Server is running at http://localhost:${port}`);
-});
